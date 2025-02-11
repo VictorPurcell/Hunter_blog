@@ -15,12 +15,17 @@ class CheckAuth
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
     public function handle(Request $request, Closure $next): Response
-    {
-        // Verifica se o usuário está autenticado
-        if (!Auth::check()) {
-            return redirect('/login')->with('error', 'Você precisa estar logado para acessar esta página.');
-        }
+{
+    // Verifica se o usuário está autenticado
+    if (!Auth::check()) {
+        return redirect('/login')->with('error', 'Você precisa estar logado para acessar esta página.');
+    }
 
-        return $next($request);
+    // Verifica se o usuário completou o 2FA
+    if (!session()->has('duo_verified') || !session('duo_verified')) {
+        return redirect()->route('duo.initiate');
+    }
+
+    return $next($request);
     }
 }

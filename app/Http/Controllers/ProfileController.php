@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Middleware\CheckAuth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Laravel\Sanctum\Guard;
 use App\Models\User; // Certifique-se de que o caminho do modelo está correto
 use App\Models\Comment;
 use app\Models\Blog;
@@ -14,12 +16,15 @@ class ProfileController extends Controller
     // Mostrar o perfil do usuário
     public function __construct()
     {
+        parent::__construct();
+        /** @phpstan-ignore-next-line */
         $this->middleware('auth');
     }
 
+
     public function show()
     {
-        $user = auth()->user(); // Obtém o usuário logado
+        $user = User::find(Auth::id()); // Em vez de auth()->id()
 
         return view('profile.show', ['user' => Auth::user()]);
     }

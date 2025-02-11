@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Http\Controllers\DuoController;
+use App\Http\Middleware\CheckAuth;
 
 class HomeController extends Controller
 {

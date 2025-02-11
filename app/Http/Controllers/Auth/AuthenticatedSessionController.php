@@ -15,6 +15,8 @@ class AuthenticatedSessionController extends Controller
     /**
      * Display the login view.
      */
+    public const HOME = '/home';
+
     public function create(): View
     {
         return view('auth.login');
