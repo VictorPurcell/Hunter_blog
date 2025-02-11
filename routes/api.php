@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\User;
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
@@ -46,5 +47,7 @@ Route::post('/login', function (Request $request) {
         'access_token' => $token,
         'token_type' => 'Bearer'
     ]);
+
+    Route::post('/login', [AuthenticatedSessionController::class, 'store'])->middleware('throttle:5,1'); // 5 tentativas por 1 minuto
 });
 

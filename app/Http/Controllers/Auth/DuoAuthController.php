@@ -4,9 +4,75 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Container\Attributes\Auth;
 
 class DuoController extends Controller
 {
+    /**
+     * Inicia o processo de autenticação com o DUO.
+     */
+    public function initiateDuo(Request $request)
+    {
+        $user = Auth::user();
+
+        if (!$user) {
+            return response()->json(['message' => 'Usuário não autenticado. Faça login novamente.'], 401);
+        }
+
+        $response = Http::post(env('DUO_API_HOST') . '/auth/v2/auth', [
+            'username' => $user->username, // ou email, dependendo da configuração no DUO
+            'factor' => 'push',
+            'device' => 'auto',
+            'async' => 'true',
+        ])->json();
+
+        if ($response['stat'] !== 'OK') {
+            return response()->json(['message' => 'Erro ao iniciar autenticação DUO. Tente novamente.'], 500);
+        }
+
+        return response()->json([
+            'message' => 'Autenticação iniciada. Verifique seu dispositivo.',
+            'txid' => $response['response']['txid']
+        ]);
+}
+
+
+    /**
+     * Verifica se a autenticação DUO foi aprovada.
+     */
+    public function verifyDuo(Request $request)
+    {
+        $request->validate([
+            'txid' => 'required|string'
+        ]);
+
+        $response = Http::post(env('DUO_API_HOST') . '/auth/v2/auth_status', [
+            'txid' => $request->txid
+        ])->json();
+
+        if ($response['stat'] !== 'OK') {
+            return response()->json(['message' => 'Erro ao verificar autenticação DUO. Tente novamente.'], 500);
+        }
+
+        if ($response['response']['result'] !== 'allow') {
+            return response()->json(['message' => 'Autenticação DUO não aprovada.'], 403);
+        }
+
+        // Marca a sessão como verificada
+        session(['duo_verified' => true]);
+
+        // Gerar o token de autenticação com Sanctum
+        $user = Auth::user();
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        return response()->json([
+            'message' => 'Autenticação aprovada',
+            'access_token' => $token,
+            'token_type' => 'Bearer'
+        ]);
+    }
+
+
     public function sendRequest(Request $request)
     {
         $integrationKey = env('DUO_INTEGRATION_KEY');

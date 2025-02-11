@@ -67,11 +67,14 @@ public function update(Request $request)
 }
 
 public function logout(Request $request)
-    {
-        Auth::logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-        return redirect('/');
-    }
+{
+    Auth::logout();
+    session()->forget('duo_verified'); // Limpa a autenticação DUO
+    $request->session()->invalidate();
+    $request->session()->regenerateToken();
+
+    return redirect('/');
+}
+
 
 }

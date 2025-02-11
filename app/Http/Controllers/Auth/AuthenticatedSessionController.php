@@ -39,22 +39,18 @@ class AuthenticatedSessionController extends Controller
     {
         $request->authenticate();
 
-        $request->validate([
-            'username' => ['required', 'string'], // Alterado de email para username
-            'password' => ['required', 'string'],
-            ]);
+        $user = Auth::user();
 
-        // Tente autenticar utilizando 'username'
-        if (! Auth::attempt($request->only('username', 'password'), $request->boolean('remember'))) {
-            return back()->withErrors([
-                'username' => 'As credenciais fornecidas não correspondem aos nossos registros.',
-            ]);
+        if (!$user) {
+            return back()->withErrors(['login' => 'Credenciais inválidas, tente novamente.']);
         }
 
-        $request->session()->regenerate();
+        session(['duo_user_id' => $user->id]);
 
-        return redirect()->intended(RouteServiceProvider::HOME);
-}
+        return redirect()->route('duo.initiate');
+    }
+
+
 
     /**
      * Destroy an authenticated session.

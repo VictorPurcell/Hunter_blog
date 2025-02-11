@@ -105,6 +105,11 @@
                             style="background: var(--nen-red); color: white">
                         {{ __('Liberar Aura') }}
                     </button>
+                    @if(session('duo_verified') === false)
+                        <div class="alert alert-warning">
+                            <strong>Autenticação necessária!</strong> Por favor, verifique seu dispositivo para completar a autenticação.
+                        </div>
+                    @endif
                 </form>
             </div>
 
